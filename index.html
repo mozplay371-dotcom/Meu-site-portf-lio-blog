@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gênio do Foco</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f0f4f8; margin:0; padding:0; }
+header { background: #4361ee; color: white; padding: 1rem; text-align: center; }
+.container { max-width: 800px; margin: 2rem auto; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+h1,h2 { text-align:center; color:#4361ee; }
+input, textarea, button { width: 100%; padding:10px; margin:5px 0; border-radius:5px; border:1px solid #ccc; font-size:1rem; }
+button { background:#4361ee; color:white; border:none; cursor:pointer; }
+button:hover { background:#3a0ca3; }
+.step { background:#e3f2fd; margin:10px 0; padding:10px; border-left:5px solid #4cc9f0; border-radius:5px; }
+.step.done { border-left:5px solid #4cc9f0; opacity:0.6; text-decoration:line-through; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Gênio do Foco</h1>
+<p>Resolva seu excesso de informação passo a passo</p>
+</header>
+
+<div class="container">
+<h2>Digite seu problema</h2>
+<input type="text" id="problemInput" placeholder="Ex.: Não consigo organizar todas as informações que encontro">
+<button onclick="addProblem()">Adicionar Problema</button>
+
+<div id="problemsList"></div>
+</div>
+
+<script>
+// Banco simples localStorage
+let problems = JSON.parse(localStorage.getItem('genioProblems')) || [];
+
+// Função para salvar
+function save() {
+    localStorage.setItem('genioProblems', JSON.stringify(problems));
+}
+
+// Função para gerar passos automáticos
+function generateSteps(problemText) {
+    return [
+        {title:"Definir prioridade", description:"Liste as informações que você tem e escolha as mais importantes primeiro.", done:false},
+        {title:"Separar em categorias", description:"Classifique as informações em temas ou projetos.", done:false},
+        {title:"Criar ação prática", description:"Escolha uma pequena ação que pode ser feita imediatamente.", done:false},
+        {title:"Revisar diariamente", description:"Revise suas listas e ajuste prioridades todos os dias.", done:false},
+        {title:"Eliminar excesso", description:"Descartar informações irrelevantes ou duplicadas.", done:false}
+    ];
+}
+
+// Adicionar problema
+function addProblem() {
+    const input = document.getElementById('problemInput');
+    const text = input.value.trim();
+    if(!text) { alert("Digite um problema!"); return; }
+    const problem = {id:Date.now(), text, steps:generateSteps(text)};
+    problems.push(problem);
+    save();
+    input.value = '';
+    renderProblems();
+}
+
+// Renderizar problemas e passos
+function renderProblems() {
+    const container = document.getElementById('problemsList');
+    if(problems.length===0) { container.innerHTML="<p style='text-align:center;color:#666;'>Nenhum problema registrado</p>"; return; }
+    container.innerHTML = problems.map(p=>`
+        <div style="margin-top:20px; padding:10px; border:1px solid #ccc; border-radius:5px;">
+            <h3>${p.text}</h3>
+            <div>${p.steps.map((s,i)=>`
+                <div class="step ${s.done ? 'done' : ''}" onclick="toggleStep(${p.id},${i})">
+                    <strong>${s.title}</strong>
+                    <p>${s.description}</p>
+                </div>
+            `).join('')}</div>
+        </div>
+    `).join('');
+}
+
+// Marcar passo como feito
+function toggleStep(problemId, stepIndex) {
+    const problem = problems.find(p=>p.id===problemId);
+    if(!problem) return;
+    problem.steps[stepIndex].done = !problem.steps[stepIndex].done;
+    save();
+    renderProblems();
+}
+
+// Inicializar
+renderProblems();
+</script>
+
+</body>
+</html>
